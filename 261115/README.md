@@ -1,8 +1,10 @@
-# 261115 TinkerCAD 시뮬레이터 실습 결과
+# 261115 실습 결과
 
 > 작성자: 202035152 박민재
 
 TinkerCAD 시뮬레이터 상에서 LED 전구를 버튼을 사용해서 점등시키는 코드 및 실행 결과 이미지입니다.
+
+Arduino IDE 상에서 작업한 코드를 추가했습니다.
 
 
 ## 파일 구성
@@ -17,7 +19,7 @@ TinkerCAD 시뮬레이터 상에서 LED 전구를 버튼을 사용해서 점등�
 
 버튼을 누르고 있을 동안에만 LED가 점등되는 실습 코드입니다.
 
-![버튼 누르고 있을때 LED 점등 실습 결과 이미지](./led_press.png)
+![버튼 누르고 있을때 LED 점등 실습 결과 이미지](./led_tinkerCAD/led_press.png)
 
 ```c
 const int buttonPin = 2;
@@ -102,7 +104,7 @@ void loop()
 
 가변 저항을 조절하는 다이얼의 저항값에 따라 LED의 밝기를 조절하는 실습입니다.
 
-![](./led_brightness.png)
+![](./led_tinkerCAD/led_brightness.png)
 
 ```c
 const int potPin = A2;
@@ -124,5 +126,58 @@ void loop()
   
   delay(50);
   
+}
+```
+
+### 4. (아두이노 실습) 서보모터를 이용한 와이퍼 동작 구현
+
+와이퍼처럼 0~180도 사이를 순환하며 동작하는 서보모터 실습 코드입니다.
+for 루프를 사용하여 구현했습니다.
+
+```c
+#include <ESP32Servo.h>
+
+#define SERVO_PIN 14
+
+Servo myServo;
+
+void setup() {
+  myServo.attach(SERVO_PIN);
+  myServo.write(0);
+}
+
+void loop() {
+  for (int position = 0; position < 180; position++) { // for loop를 사용한 구현
+    myServo.write(position);
+    delay(10);
+  }
+}
+```
+
+### 5. (아두이노 실습) potentiometer 값에 따라 서보모터 회전시키기
+
+poteniometer 가변저항 다이얼을 회전시킨 정도에 따라 서보모터를 회전시키는 코드입니다.
+
+```c
+#include <ESP32Servo.h>
+
+#define SERVO_PIN 14
+#define POT_PIN 39
+
+Servo myServo;
+
+
+void setup() {
+  myServo.attach(SERVO_PIN);
+  myServo.write(0);
+}
+
+void loop() {
+
+  int value = analogRead(POT_PIN);
+  int position = map(value, 0, 1023, 0, 180);  // 가변저항 입력값을 서보모터 동작범위 180도로 매핑
+
+  myServo.write(position);
+  delay(10);
 }
 ```
