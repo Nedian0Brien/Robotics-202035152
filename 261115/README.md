@@ -48,7 +48,9 @@ void loop()
 
 버튼을 누르면 현재 켜짐-꺼짐 상태에 따라 LED가 토글되는 코드입니다.
 
-![LED 토글 동영상](./led_toggle.webm)
+https://github.com/user-attachments/assets/f6f3d37f-3914-4488-85d6-fa798d79d205
+
+[원본 WebM 열기](./led_toggle.webm)
 
 ```c
 const int ledPin = 7;
