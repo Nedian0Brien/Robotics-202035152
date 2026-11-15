@@ -1,17 +1,18 @@
 # 261115 실습 결과
 
-> 작성자: 202035152 박민재
-
 TinkerCAD 시뮬레이터 상에서 LED 전구를 버튼을 사용해서 점등시키는 코드 및 실행 결과 이미지입니다.
 
-Arduino IDE 상에서 작업한 코드를 추가했습니다.
+Arduino IDE 상에서 작업한 실습 코드를 추가했습니다.
 
 
 ## 파일 구성
-- 실습 이미지 및 동영상 파일
+- `led_tinkerCAD`: TinkerCAD 상에서 수행한 실습 결과 이미지 및 동영상 파일이 있는 폴더입니다.
     - `led_press.png`
     - `led_toggle.webm`
     - `led_brightness.png`
+- `servo_test` : Arduino IDE에서 수행한 서보모터 실습 코드 폴더입니다.
+    -  `servo_potentiometer` : Potentionmeter 다이얼 각도에 따라 서보모터를 회전시키는 실습 코드입니다.
+    - `servo_wiper` : for loop를 사용하여 서보모터를 와이퍼처럼 동작시키는 실습 코드입니다.
 
 ## 실습 결과
 
