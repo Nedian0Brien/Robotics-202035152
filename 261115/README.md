@@ -48,7 +48,7 @@ MCU는 입력 핀에 걸린 전압을 디지털 입력에서는 HIGH와 LOW 중 
 - Arduino Uno: 10비트, 0–1023
 - ESP32: 12비트(기본값), 0–4095
 
-PWM(Pulse Width Modulation)은 HIGH와 LOW를 빠르게 반복하면서 한 주기 중 HIGH인 시간의 비율(Duty Cycle)을 조절하는 방식이며, 주파수(Frequency)는 주기의 역수입니다. Uno에서는 PWM 핀에 `analogWrite`로 0–255 값을 출력합니다. ADC 입력 0–1023을 PWM 출력 0–255에 맞추려면 `map` 함수로 범위를 변환하며, `map`은 입력이 범위를 벗어나도 결과를 제한하지 않습니다.
+PWM(Pulse Width Modulation)은 HIGH와 LOW를 빠르게 반복하면서 한 주기 중 HIGH인 시간의 비율(Duty Cycle)을 조절하는 방식이며, 주파수(Frequency)는 주기의 역수입니다. Uno에서는 PWM 핀에 `analogWrite`로 0–255 값을 출력합니다. ADC 입력 0–1023을 PWM 출력 0–255에 맞추려면 `map` 함수로 범위를 변환하며, `map`은 범위를 벗어난 입력도 같은 비율로 변환합니다.
 
 ### 2.6 서보모터
 
@@ -64,7 +64,7 @@ IMU(Inertial Measurement Unit)는 가속도계, 자이로, 지자기계로 구�
 
 ### 3.1 버튼 상태 읽기 (TinkerCAD)
 
-D2 핀으로 버튼 상태를 읽어 시리얼 모니터에 출력하는 실습입니다. 버튼의 한쪽은 5V에, 다른 쪽은 D2에 연결하고, D2는 10kΩ 풀다운 저항으로 GND에 연결했습니다. 같은 버튼 노드에서 200Ω 저항과 LED를 거쳐 GND까지 직렬로 연결했습니다.
+D2 핀으로 버튼 상태를 읽어 시리얼 모니터에 출력하는 실습입니다. 풀다운 저항은 10kΩ, LED 직렬 저항은 200Ω을 사용했습니다.
 
 ![버튼 상태 읽기 회로와 시리얼 출력](./led_tinkerCAD/led_press.png)
 
@@ -97,11 +97,11 @@ void loop()
 
 버튼을 누르면 시리얼 모니터에 `Pressed`가, 놓으면 `Not Pressed`가 출력되고, LED는 버튼을 누르는 동안 켜집니다.
 
-코드에는 LED를 제어하는 부분이 없습니다. 버튼을 누르면 5V가 버튼 노드에 연결되면서 200Ω 저항과 LED를 거쳐 GND로 전류가 흘러 LED가 켜집니다.
+LED는 버튼 회로에 직접 연결되어 있어, 버튼을 누르면 5V가 200Ω 저항과 LED를 거쳐 GND로 흐르면서 켜집니다.
 
 ### 3.2 버튼으로 LED 토글 (TinkerCAD)
 
-버튼을 누를 때마다 LED를 켜고 끄는 실습입니다. D2에는 10kΩ 풀다운 저항을 연결한 버튼을, D7에는 220Ω 저항과 LED를 연결했습니다.
+버튼을 누를 때마다 LED를 켜고 끄는 실습입니다. 풀다운 저항은 10kΩ, LED 직렬 저항은 220Ω을 사용했습니다.
 
 https://github.com/user-attachments/assets/f6f3d37f-3914-4488-85d6-fa798d79d205
 
@@ -157,11 +157,48 @@ void loop()
 
 버튼을 누르면 `buttonFlag`가 반전되고, 그 값에 따라 LED가 켜지거나 꺼집니다.
 
-현재 버튼 상태가 HIGH인지만 확인하고 이전 상태와 비교하지 않기 때문에, 버튼을 누르고 있는 동안 루프마다 플래그가 반전됩니다. 한 루프는 `delay(50)` 두 번으로 약 100ms이므로, 버튼을 누르고 있으면 LED가 약 100ms마다 켜졌다 꺼지기를 반복합니다. 코드 주석에는 `delay(50)`이 중복 입력을 막는다고 적었지만, `delay`는 읽기 간격만 늘릴 뿐 같은 누름이 여러 번 처리되는 것을 막지 못합니다.
+현재 버튼 상태가 HIGH인지만 확인하고 이전 상태와 비교하지 않기 때문에, 버튼을 누르고 있는 동안 루프(약 100ms)마다 플래그가 반전되는 문제가 있었습니다.
+
+#### 코드 수정
+
+이전 버튼 상태를 `lastButtonState`에 저장하고, LOW에서 HIGH로 바뀌는 Rising Edge에서만 플래그를 반전하도록 수정했습니다.
+
+```c
+const int ledPin = 7;
+const int buttonPin = 2;
+bool buttonFlag = false; // 버튼 토글 상태를 반영하기 위한 플래그
+int lastButtonState = LOW;
+
+void setup()
+{
+  pinMode(ledPin, OUTPUT);
+  pinMode(buttonPin, INPUT);
+  Serial.begin(115200);
+}
+
+void loop()
+{
+  int buttonState = digitalRead(buttonPin);
+
+  if (buttonState == HIGH && lastButtonState == LOW) { // Rising Edge에서만 플래그 전환
+    buttonFlag = !buttonFlag;
+    Serial.println(buttonFlag);
+  }
+  lastButtonState = buttonState;
+
+  if (buttonFlag == true) {
+    digitalWrite(ledPin, HIGH);
+  } else {
+    digitalWrite(ledPin, LOW);
+  }
+
+  delay(50);
+}
+```
 
 ### 3.3 가변저항으로 LED 밝기 조절 (TinkerCAD)
 
-가변저항 다이얼로 LED 밝기를 조절하는 실습입니다. 가변저항의 양 끝을 5V와 GND에, 가운데 단자를 A2에 연결하고, PWM 핀인 D9에 220Ω 저항과 LED를 연결했습니다.
+가변저항 다이얼로 LED 밝기를 조절하는 실습입니다. LED 직렬 저항은 220Ω을 사용했습니다.
 
 ![가변저항 LED 밝기 조절 회로와 시리얼 출력](./led_tinkerCAD/led_brightness.png)
 
@@ -188,11 +225,9 @@ void loop()
 }
 ```
 
-#### 결과 및 분석
+#### 결과
 
-다이얼을 돌리면 LED 밝기와 시리얼 출력값이 함께 바뀌며, 그림의 시리얼 출력값은 183입니다.
-
-출력값 183은 듀티비 183/255 ≈ 71.8%이고, 5V 기준 평균 전압은 약 3.59V입니다. `map`은 정수로 계산하기 때문에 `analogRead` 값 735–738이 모두 183으로 변환되며, ADC 값 4개가 밝기 한 단계에 대응합니다.
+다이얼을 돌리면 LED 밝기와 시리얼 출력값이 함께 바뀝니다.
 
 ### 3.4 서보모터 와이퍼 (ESP32)
 
@@ -218,9 +253,9 @@ void loop() {
 }
 ```
 
-#### 결과 및 분석
+#### 결과
 
-for문의 조건이 `position < 180`이고 `position`을 늘리기만 하므로, 서보는 0°에서 179°까지 10ms마다 1°씩 회전한 뒤 다음 루프의 `write(0)`에서 0°로 바로 돌아갑니다.
+서보가 0°에서 179°까지 10ms마다 1°씩 회전한 뒤 0°로 돌아가는 동작을 반복합니다.
 
 ### 3.5 가변저항으로 서보모터 제어 (ESP32)
 
