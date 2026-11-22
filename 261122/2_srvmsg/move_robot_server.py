@@ -7,10 +7,10 @@ from custom_interfaces.srv import MoveRobot
 class MoveRobotServer(Node):
     def __init__(self):
         super().__init__('move_robot_server')
-        self.srv = self.create_service(MoveRobot, '/move_robot', self.srv_callback)
+        self.srv = self.create_service(MoveRobot, '/move_robot', self.move_robot_callback)
         self.get_logger().info('MoveRobot Server 켜짐')
 
-    def srv_callback(self, request, response):
+    def move_robot_callback(self, request, response):
         pose = request.current_pose
         response.result_pose.x = pose.x + request.distance * math.cos(pose.theta)
         response.result_pose.y = pose.y + request.distance * math.sin(pose.theta)
