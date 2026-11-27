@@ -171,31 +171,43 @@ float aheadDist() {
 }
 
 
-void decide() {
-    const float pot = analogRead(POT_PIN) / 4095.0f;
-    if (pot < POT_ON) {
-        v = 0.0f;
-        stopMotors();
+void printStatus(float pot, int target, float w, float ahead) {
+    static unsigned long lastPrintMs = 0;
+    if (millis() - lastPrintMs < 500) {
         return;
     }
+    lastPrintMs = millis();
+    if (target == NONE) {
+        Serial.print("target=none");
+    } else {
+        Serial.printf("target=%+d", target);
+    }
+    Serial.printf(" side=%+d pot=%.2f v=%.2f w=%.2f ahead=%.0f\n", side, pot, v, w, ahead);
+}
 
+
+void decide() {
+    const float pot = analogRead(POT_PIN) / 4095.0f;
     markBlocked();
     const int target = chooseTarget();
-    float vGoal;
-    float w;
-    if (target == NONE) {
-        vGoal = 0.0f;
+    const float ahead = aheadDist();
+    float vGoal = 0.0f;
+    float w = 0.0f;
+    if (pot < POT_ON) {
+        // 가변저항을 내리면 회전까지 멈추고 판단 결과만 출력함
+    } else if (target == NONE) {
         w = side * W_TURN;   // 피하던 쪽으로 제자리 회전함
     } else {
         if (target != 0) {
             side = (target > 0) ? 1 : -1;
         }
-        const float slow = constrain((aheadDist() - D_STOP) / (D_FREE - D_STOP), 0.0f, 1.0f);
+        const float slow = constrain((ahead - D_STOP) / (D_FREE - D_STOP), 0.0f, 1.0f);
         w = K_W * target;
         vGoal = V_CRUISE * pot * max(0.0f, 1.0f - abs(target) / 45.0f) * slow;
     }
     v = min(vGoal, v + DV);   // 가속만 제한하고 감속은 즉시 반영함
     applyVelocity(v, w);
+    printStatus(pot, target, w, ahead);
 }
 
 
@@ -266,6 +278,8 @@ void pollLidar() {
 
 
 void setup() {
+    Serial.begin(115200);
+
     for (int i = 0; i < 8; i++) {
         ledcAttach(motorPins[i], MOTOR_PWM_FREQ, MOTOR_PWM_RES);
         ledcWrite(motorPins[i], 0);

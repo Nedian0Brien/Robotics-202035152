@@ -42,7 +42,8 @@ loop: 한 바퀴 스캔이 500 ms 넘게 없으면 정지
 | `markBlocked` | 규칙 1. 전방 −90..90° 배열 `blocked[]`에 점마다 막는 범위를 표시한다. |
 | `nearestOpen` · `chooseTarget` | 규칙 2. 0°부터 1°씩 넓혀 각 쪽의 첫 열린 각을 찾고, `side`로 한쪽을 고른다. |
 | `aheadDist` | 정면 반원의 점을 x(앞), y(왼쪽)로 바꿔 \|y\| < R인 점 중 가장 작은 x를 돌려준다. 없으면 `D_FREE`. |
-| `decide` | 규칙 3–5를 적용해 v, w를 정한다. |
+| `decide` | 규칙 3–5를 적용해 v, w를 정한다. 가변저항이 5% 미만이어도 판단은 계속하고 출력만 0으로 둔다. |
+| `printStatus` | 500 ms마다 Serial Monitor(115200 baud)에 `target`(목표 각, 없으면 `none`), `side`, `pot`, `v`, `w`, `ahead`(정면 통로 거리 mm)를 한 줄로 출력한다. |
 | `applyVelocity` · `setMotorChannel` | 왼쪽 = (v − w)·`MAX_PWM`, 오른쪽 = (v + w)·`MAX_PWM`으로 섞는다. 0이 아닌 명령은 모터 데드존을 넘도록 `MIN_PWM`–`MAX_PWM`으로 매핑한다. |
 
 ## 상수
@@ -59,4 +60,5 @@ loop: 한 바퀴 스캔이 500 ms 넘게 없으면 정지
 ## 업로드와 실행
 
 1. GPIO 0·12·15는 부팅 모드를 정하는 핀이므로 모터 전원을 끈 상태에서 `Project01/follow-the-gap/follow-the-gap.ino`를 `ESP32 Dev Module`로 업로드한다.
-2. 가변저항을 0으로 돌려 두고 모터 전원을 켠다. 부팅 비프음이 울린 뒤 가변저항을 올리면 그 비율만큼의 순항 출력으로 출발한다.
+2. 가변저항을 0으로 돌려 두고 모터 전원을 켠다. 부팅 비프음이 울리면 Serial Monitor에서 `pot=0.00` 근처 값을 확인한다. 이 상태에서 차 앞에 손을 대면 모터는 멈춘 채 `ahead`가 줄고, 왼쪽 앞에 대면 `target`이 −로 바뀐다.
+3. 가변저항을 올리면 그 비율만큼의 순항 출력으로 출발한다.
